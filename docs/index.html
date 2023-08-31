@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Maplibre Graticule</title>
+  <script src="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <!-- <script src="../dist/maplibre-graticule.js"></script> -->
+  <script src="https://unpkg.com/maplibre-graticule@0.0.1/dist/maplibre-graticule.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+
+    window.addEventListener('DOMContentLoaded', () => {
+      var osm = {
+        version: 8,
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap Contributors',
+            maxzoom: 25
+          },
+        },
+        layers: [
+          {
+            id: 'osm',
+            type: 'raster',
+            source: 'osm'
+          }
+        ],
+      }
+      var map = (window.map = new maplibregl.Map({
+        container: 'map',
+        zoom: 10,
+        center: [85.3240, 27.7172],
+        pitch: 0,
+        bearing: 0,
+        hash: true,
+        style: osm,
+        maxZoom: 20,
+        maxPitch: 85
+      }));
+
+      map.on('load', () => {
+        const graticule = new MaplibreGraticule.Graticule({
+          minZoom: 0,
+          maxZoom: 20,
+          showLabels: true,
+          labelType: 'hdms',
+          labelSize: 12,
+          labelColor: "#0000ee",
+          longitudePosition: 'bottom',
+          latitudePosition: 'right',
+          paint: {
+            'line-opacity': 0.8,
+            'line-color': "rgba(255,120,0,0.9)",
+            'line-dasharray': [2, 1],
+          }
+        });
+        map.addControl(graticule);
+
+        map.addControl(
+          new maplibregl.NavigationControl({
+            visualizePitch: true,
+            showZoom: true,
+            showCompass: true
+          })
+        );
+
+      });
+    });
+  </script>
+</body>
+
+</html>
