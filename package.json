@@ -1,6 +1,6 @@
 {
   "name": "maplibre-graticule",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Graticuel / Grid plugin for MapLibre GL JS / Mapbox GL JS",
   "keywords": [
     "maplibre",
