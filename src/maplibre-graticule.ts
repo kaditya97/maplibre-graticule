@@ -1,17 +1,24 @@
 import { getGraticule } from './generator';
+import { Map, LinePaint, GeoJSONSource } from 'maplibre-gl';
 
-/** @typedef {import('maplibre-gl').Map} Map */
-/** @typedef {import('maplibre-gl').GeoJSONSource} GeoJSONSource */
-/** @typedef {import('maplibre-gl').LngLatBounds} LngLatBounds */
-/** @typedef {import('maplibre-gl').MapMouseEvent} MapMouseEvent */
-/** @typedef {import('./graticule').GraticuleConfig} GraticuleConfig */
+export interface GraticuleConfig {
+  minZoom?: number;
+  maxZoom?: number;
+  showLabels?: boolean;
+  labelType?: 'hdms' | 'decimal';
+  labelSize?: number;
+  labelColor?: string;
+  longitudePosition?: 'top' | 'bottom';
+  latitudePosition?: 'left' | 'right';
+  longitudeOffset?: number[];
+  latitudeOffset?: number[];
+  paint?: LinePaint;
+}
 
-/** 
-* @typedef {{
-  *  meridians: GeoJSON.Feature<GeoJSON.LineString>[]
-  *  parallels: GeoJSON.Feature<GeoJSON.LineString>[]
-  * }} graticuleJson
-  */
+type graticuleJson = {
+  meridians: GeoJSON.Feature<GeoJSON.LineString>[];
+  parallels: GeoJSON.Feature<GeoJSON.LineString>[];
+};
 
 export function randomString() {
   return Math.floor(Math.random() * 10e12).toString(36);
@@ -22,7 +29,7 @@ export function randomString() {
  * @param {Map} map 
  * @returns 
  */
-function calculateResolution(map) {
+function calculateResolution(map: Map) {
   const zoom = map.getZoom();
   const container = map.getContainer();
   const containerWidth = container.offsetWidth;
@@ -40,11 +47,14 @@ function calculateResolution(map) {
   }
 }
 
-export class Graticule {
-  /**
-   * @param {GraticuleConfig} config
-   */
-  constructor(config) {
+export class MaplibreGraticule {
+  xid: string;
+  yid: string;
+  config: GraticuleConfig;
+  updateBound: () => void;
+  labelSize: any;
+  map: any;
+  constructor(config: GraticuleConfig) {
     this.xid = `graticule-meridains-${randomString()}`;
     this.yid = `graticule-parallels-${randomString()}`;
     this.config = config;
@@ -58,7 +68,7 @@ export class Graticule {
    * @param {Map} map
    * @returns {HTMLElement}
    */
-  onAdd(map) {
+  onAdd(map: Map): HTMLElement {
     this.map = map;
 
     this.map.on('load', this.updateBound);
@@ -74,7 +84,7 @@ export class Graticule {
   /**
    * @returns {void}
    */
-  onRemove() {
+  onRemove(): void {
     if (!this.map) {
       return;
     }
@@ -100,7 +110,7 @@ export class Graticule {
   /**
    * @returns {void}
    */
-  update() {
+  update(): void {
     if (!this.map) {
       return;
     }
@@ -114,7 +124,7 @@ export class Graticule {
     const yWidth = resolution.y / 100 * 2;
 
     /** @type {graticuleJson} */
-    let graticule = {
+    let graticule: graticuleJson = {
       meridians: [],
       parallels: []
     };
@@ -122,7 +132,7 @@ export class Graticule {
       graticule = getGraticule(this.bbox, xWidth, yWidth, 'kilometers', labelType, longitudePosition, latitudePosition);
     }
 
-    const xsource = /** @type {GeoJSONSource} */ (this.map.getSource(this.xid));
+    const xsource: GeoJSONSource = (this.map.getSource(this.xid));
     if (!xsource) {
       this.map.addSource(this.xid, {
         type: 'geojson',
@@ -160,7 +170,7 @@ export class Graticule {
       xsource.setData({ type: 'FeatureCollection', features: graticule.meridians });
     }
 
-    const ysource = /** @type {GeoJSONSource} */ (this.map.getSource(this.yid));
+    const ysource: GeoJSONSource = (this.map.getSource(this.yid));
     if (!ysource) {
       this.map.addSource(this.yid, {
         type: 'geojson',
@@ -202,7 +212,7 @@ export class Graticule {
   /**
    * @returns {boolean}
    */
-  get active() {
+  get active(): boolean {
     if (!this.map) {
       return false;
     }
@@ -217,7 +227,7 @@ export class Graticule {
   /**
    * @returns {GeoJSON.BBox}
    */
-  get bbox() {
+  get bbox(): GeoJSON.BBox {
     if (!this.map) {
       throw new Error('Invalid state');
     }

@@ -13,19 +13,19 @@ or
 ```html
 <link href="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/maplibre-graticule@0.0.1/dist/maplibre-graticule.js"></script>
+<script src="https://unpkg.com/maplibre-graticule@0.0.3/dist/maplibre-graticule.js"></script>
 ```
 
 ## Usage
 ```jsx
 import Maplibre from 'maplibre-gl';
-import * as MaplibreGraticule from 'maplibre-graticule';
+import MaplibreGraticule from 'maplibre-graticule';
 ```
 
 ## Example usage
 Check docs/index.html for example implementation.
 ```Javascript
-const graticule = new MaplibreGraticule.Graticule({
+const graticule = new MaplibreGraticule({
     minZoom: 0,
     maxZoom: 20,
     showLabels: true,
@@ -50,24 +50,6 @@ map.removeControl(graticule);
 ```
 
 ### Options for use
-
-```Typescript
-export interface GraticuleConfig {
-  minZoom?: number;
-  maxZoom?: number;
-  showLabels?: boolean;
-  labelType?: 'hdms' | 'decimal';
-  labelSize?: number;
-  labelColor?: string;
-  longitudePosition?: 'top' | 'bottom';
-  latitudePosition?: 'left' | 'right';
-  longitudeOffset?: number[];
-  latitudeOffset?: number[];
-  paint?: maplibregl.LinePaint;
-}
-
-const graticule = new MaplibreGraticule.Graticule(config: GraticuleConfig);
-```
 
 - `minZoom` - number, min zoom to display the grid, **default: 0**
 - `maxZoom` - number, max zoom to display the grid , **default: 20**

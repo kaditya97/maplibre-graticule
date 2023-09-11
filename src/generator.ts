@@ -1,33 +1,31 @@
 import distance from '@turf/distance';
 import destination from '@turf/destination';
 
-/** 
-* @typedef {{
-*  meridians: GeoJSON.Feature<GeoJSON.LineString>[]
-*  parallels: GeoJSON.Feature<GeoJSON.LineString>[]
-* }} graticuleJson
-*/
+type graticuleJson = {
+  meridians: GeoJSON.Feature<GeoJSON.LineString>[];
+  parallels: GeoJSON.Feature<GeoJSON.LineString>[];
+};
 
-/** @typedef {import('@turf/helpers').Units} Units */
+import { Units } from '@turf/helpers';
 
 /**
  * 
  * @param {number} n 
  * @param {number} decimals 
- * @returns 
+ * @returns {number}
  */
-export function toFixed(n, decimals) {
+export function toFixed(n: number, decimals: number): number {
   const factor = Math.pow(10, decimals);
   return Math.round(n * factor) / factor;
 }
 
 /**
-* 
-* @param {number} a 
-* @param {number} b 
-* @returns 
-*/
-export function modulo(a, b) {
+ * 
+ * @param {number} a 
+ * @param {number} b 
+ * @returns {number}
+ */
+export function modulo(a: number, b: number): number {
   const r = a % b;
   return r * b < 0 ? r + b : r;
 }
@@ -37,9 +35,9 @@ export function modulo(a, b) {
 * @param {number} number 
 * @param {number} width 
 * @param {number | undefined} precision 
-* @returns 
+* @returns {string}
 */
-export function padNumber(number, width, precision = undefined) {
+export function padNumber(number: number, width: number, precision: number | undefined = undefined): string {
   const numberString =
     precision !== undefined ? number.toFixed(precision) : '' + number;
   let decimal = numberString.indexOf('.');
@@ -54,9 +52,9 @@ export function padNumber(number, width, precision = undefined) {
 * @param {string} hemispheres 
 * @param {number} degrees 
 * @param {number} fractionDigits 
-* @returns 
+* @returns {string}
 */
-export function degreesToStringHDMS(hemispheres, degrees, fractionDigits) {
+export function degreesToStringHDMS(hemispheres: string, degrees: number, fractionDigits: number): string {
   const normalizedDegrees = modulo(degrees + 180, 360) - 180;
   const x = Math.abs(3600 * normalizedDegrees);
   const decimals = fractionDigits || 0;
@@ -99,12 +97,11 @@ export function degreesToStringHDMS(hemispheres, degrees, fractionDigits) {
  * @param {string} latitudePosition
  * @returns {graticuleJson}
  */
-export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, labelType, longitudePosition, latitudePosition) {
+export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticuleHeight: number, units: Units, labelType: string, longitudePosition: string, latitudePosition: string): graticuleJson {
 
   const earthCircumference = Math.ceil(distance([0, 0], [180, 0], { units }) * 2);
   const maxColumns = Math.floor(earthCircumference / graticuleWidth);
-  /** @type {(from: GeoJSON.Position, to: GeoJSON.Position, options: { units: Units }) => number} */
-  const fullDistance = (from, to, options) => {
+  const fullDistance: (from: GeoJSON.Position, to: GeoJSON.Position, options: { units: Units; }) => number = (from, to, options): number => {
     const dist = distance(from, to, options);
     if (Math.abs(to[0] - from[0]) >= 180) {
       return earthCircumference - dist;
@@ -112,8 +109,7 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
     return dist;
   };
 
-  /** @type {GeoJSON.Feature<GeoJSON.LineString>[]} */
-  const meridians = [];
+  const meridians: GeoJSON.Feature<GeoJSON.LineString>[] = [];
   const parallels = [];
   const west = bbox[0];
   const south = bbox[1];
@@ -125,8 +121,7 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
   const deltaY = (south < 0 ? -1 : 1) * fullDistance([0, 0], [0, south], { units });
   const startDeltaX = Math.ceil(deltaX / graticuleWidth) * graticuleWidth;
   const startDeltaY = Math.ceil(deltaY / graticuleHeight) * graticuleHeight;
-  /** @type {GeoJSON.Position} */
-  const startPoint = [
+  const startPoint: GeoJSON.Position = [
     destination([0, 0], startDeltaX, 90, { units }).geometry.coordinates[0],
     destination([0, 0], startDeltaY, 0, { units }).geometry.coordinates[1]
   ];
@@ -137,14 +132,12 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
   const columns = Math.min(Math.ceil(width / graticuleWidth), maxColumns);
   const rows = Math.ceil(height / graticuleHeight);
 
-  /** @type {GeoJSON.Position} */
-  let currentPoint;
+  let currentPoint: GeoJSON.Position;
 
   // meridians
   currentPoint = startPoint;
   for (let i = 0; i < columns; i++) {
-    /** @type {GeoJSON.Position[]} */
-    let coordinates;
+    let coordinates: GeoJSON.Position[];
     if (longitudePosition === 'bottom') {
       coordinates = [
         [currentPoint[0], south],
@@ -163,8 +156,7 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
       hemisphere = 'W'
     }
     const hdms = degreesToStringHDMS(hemisphere, currentPoint[0], 2)
-    /** @type {GeoJSON.Feature<GeoJSON.LineString>} */
-    let feature;
+    let feature: GeoJSON.Feature<GeoJSON.LineString>;
     if (labelType === 'hdms') {
       feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": hdms } };
     } else {
@@ -181,8 +173,7 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
   // parallels
   currentPoint = startPoint;
   for (let i = 0; i < rows; i++) {
-    /** @type {GeoJSON.Position[]} */
-    let coordinates;
+    let coordinates: GeoJSON.Position[];
     if (latitudePosition === 'right') {
       coordinates = [
         [east, currentPoint[1]],
@@ -201,8 +192,7 @@ export function getGraticule(bbox, graticuleWidth, graticuleHeight, units, label
       hemisphere = 'S'
     }
     const hdms = degreesToStringHDMS(hemisphere, currentPoint[1], 2)
-    /** @type {GeoJSON.Feature<GeoJSON.LineString>} */
-    let feature;
+    let feature: GeoJSON.Feature<GeoJSON.LineString>;
     if (labelType === 'hdms') {
       feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": hdms } };
     } else {
