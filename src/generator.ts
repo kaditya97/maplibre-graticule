@@ -1,17 +1,17 @@
-import distance from '@turf/distance';
-import destination from '@turf/destination';
+import distance from "@turf/distance";
+import destination from "@turf/destination";
 
 type graticuleJson = {
   meridians: GeoJSON.Feature<GeoJSON.LineString>[];
   parallels: GeoJSON.Feature<GeoJSON.LineString>[];
 };
 
-import { Units } from '@turf/helpers';
+import { Units } from "@turf/helpers";
 
 /**
- * 
- * @param {number} n 
- * @param {number} decimals 
+ *
+ * @param {number} n
+ * @param {number} decimals
  * @returns {number}
  */
 export function toFixed(n: number, decimals: number): number {
@@ -20,9 +20,9 @@ export function toFixed(n: number, decimals: number): number {
 }
 
 /**
- * 
- * @param {number} a 
- * @param {number} b 
+ *
+ * @param {number} a
+ * @param {number} b
  * @returns {number}
  */
 export function modulo(a: number, b: number): number {
@@ -31,30 +31,38 @@ export function modulo(a: number, b: number): number {
 }
 
 /**
-* 
-* @param {number} number 
-* @param {number} width 
-* @param {number | undefined} precision 
-* @returns {string}
-*/
-export function padNumber(number: number, width: number, precision: number | undefined = undefined): string {
+ *
+ * @param {number} number
+ * @param {number} width
+ * @param {number | undefined} precision
+ * @returns {string}
+ */
+export function padNumber(
+  number: number,
+  width: number,
+  precision: number | undefined = undefined
+): string {
   const numberString =
-    precision !== undefined ? number.toFixed(precision) : '' + number;
-  let decimal = numberString.indexOf('.');
+    precision !== undefined ? number.toFixed(precision) : "" + number;
+  let decimal = numberString.indexOf(".");
   decimal = decimal === -1 ? numberString.length : decimal;
   return decimal > width
     ? numberString
-    : new Array(1 + width - decimal).join('0') + numberString;
+    : new Array(1 + width - decimal).join("0") + numberString;
 }
 
 /**
-* 
-* @param {string} hemispheres 
-* @param {number} degrees 
-* @param {number} fractionDigits 
-* @returns {string}
-*/
-export function degreesToStringHDMS(hemispheres: string, degrees: number, fractionDigits: number): string {
+ *
+ * @param {string} hemispheres
+ * @param {number} degrees
+ * @param {number} fractionDigits
+ * @returns {string}
+ */
+export function degreesToStringHDMS(
+  hemispheres: string,
+  degrees: number,
+  fractionDigits: number
+): string {
   const normalizedDegrees = modulo(degrees + 180, 360) - 180;
   const x = Math.abs(3600 * normalizedDegrees);
   const decimals = fractionDigits || 0;
@@ -73,15 +81,15 @@ export function degreesToStringHDMS(hemispheres: string, degrees: number, fracti
     deg += 1;
   }
 
-  let hdms = deg + '\u00b0';
+  let hdms = deg + "\u00b0";
   if (min !== 0 || sec !== 0) {
-    hdms += ' ' + padNumber(min, 2) + '\u2032';
+    hdms += " " + padNumber(min, 2) + "\u2032";
   }
   if (sec !== 0) {
-    hdms += ' ' + padNumber(sec, 2, decimals) + '\u2033';
+    hdms += " " + padNumber(sec, 2, decimals) + "\u2033";
   }
   if (normalizedDegrees !== 0) {
-    hdms += ' ' + hemispheres;
+    hdms += " " + hemispheres;
   }
 
   return hdms;
@@ -97,11 +105,24 @@ export function degreesToStringHDMS(hemispheres: string, degrees: number, fracti
  * @param {string} latitudePosition
  * @returns {graticuleJson}
  */
-export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticuleHeight: number, units: Units, labelType: string, longitudePosition: string, latitudePosition: string): graticuleJson {
-
-  const earthCircumference = Math.ceil(distance([0, 0], [180, 0], { units }) * 2);
+export function getGraticule(
+  bbox: GeoJSON.BBox,
+  graticuleWidth: number,
+  graticuleHeight: number,
+  units: Units,
+  labelType: string,
+  longitudePosition: string,
+  latitudePosition: string
+): graticuleJson {
+  const earthCircumference = Math.ceil(
+    distance([0, 0], [180, 0], { units }) * 2
+  );
   const maxColumns = Math.floor(earthCircumference / graticuleWidth);
-  const fullDistance: (from: GeoJSON.Position, to: GeoJSON.Position, options: { units: Units; }) => number = (from, to, options): number => {
+  const fullDistance: (
+    from: GeoJSON.Position,
+    to: GeoJSON.Position,
+    options: { units: Units }
+  ) => number = (from, to, options): number => {
     const dist = distance(from, to, options);
     if (Math.abs(to[0] - from[0]) >= 180) {
       return earthCircumference - dist;
@@ -117,13 +138,15 @@ export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticu
   const north = bbox[3];
 
   // calculate graticule start point
-  const deltaX = (west < 0 ? -1 : 1) * fullDistance([0, 0], [west, 0], { units });
-  const deltaY = (south < 0 ? -1 : 1) * fullDistance([0, 0], [0, south], { units });
+  const deltaX =
+    (west < 0 ? -1 : 1) * fullDistance([0, 0], [west, 0], { units });
+  const deltaY =
+    (south < 0 ? -1 : 1) * fullDistance([0, 0], [0, south], { units });
   const startDeltaX = Math.ceil(deltaX / graticuleWidth) * graticuleWidth;
   const startDeltaY = Math.ceil(deltaY / graticuleHeight) * graticuleHeight;
   const startPoint: GeoJSON.Position = [
     destination([0, 0], startDeltaX, 90, { units }).geometry.coordinates[0],
-    destination([0, 0], startDeltaY, 0, { units }).geometry.coordinates[1]
+    destination([0, 0], startDeltaY, 0, { units }).geometry.coordinates[1],
   ];
 
   // calculate graticule columns and rows count
@@ -138,7 +161,7 @@ export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticu
   currentPoint = startPoint;
   for (let i = 0; i < columns; i++) {
     let coordinates: GeoJSON.Position[];
-    if (longitudePosition === 'bottom') {
+    if (longitudePosition === "bottom") {
       coordinates = [
         [currentPoint[0], south],
         [currentPoint[0], north],
@@ -151,22 +174,31 @@ export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticu
     }
     let hemisphere;
     if (currentPoint[0] > 0) {
-      hemisphere = 'E'
+      hemisphere = "E";
     } else {
-      hemisphere = 'W'
+      hemisphere = "W";
     }
-    const hdms = degreesToStringHDMS(hemisphere, currentPoint[0], 2)
+    const hdms = degreesToStringHDMS(hemisphere, currentPoint[0], 2);
     let feature: GeoJSON.Feature<GeoJSON.LineString>;
-    if (labelType === 'hdms') {
-      feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": hdms } };
+    if (labelType === "hdms") {
+      feature = {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates },
+        properties: { coord: hdms },
+      };
     } else {
-      feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": currentPoint[0].toFixed(3) + "°" } };
+      feature = {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates },
+        properties: { coord: currentPoint[0].toFixed(3) + "°" },
+      };
     }
     meridians.push(feature);
 
     currentPoint = [
-      destination([currentPoint[0], 0], graticuleWidth, 90, { units }).geometry.coordinates[0],
-      currentPoint[1]
+      destination([currentPoint[0], 0], graticuleWidth, 90, { units }).geometry
+        .coordinates[0],
+      currentPoint[1],
     ];
   }
 
@@ -174,7 +206,7 @@ export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticu
   currentPoint = startPoint;
   for (let i = 0; i < rows; i++) {
     let coordinates: GeoJSON.Position[];
-    if (latitudePosition === 'right') {
+    if (latitudePosition === "right") {
       coordinates = [
         [east, currentPoint[1]],
         [west, currentPoint[1]],
@@ -185,29 +217,38 @@ export function getGraticule(bbox: GeoJSON.BBox, graticuleWidth: number, graticu
         [east, currentPoint[1]],
       ];
     }
-    let hemisphere = 'S';
+    let hemisphere = "S";
     if (currentPoint[1] > 0) {
-      hemisphere = 'N'
+      hemisphere = "N";
     } else {
-      hemisphere = 'S'
+      hemisphere = "S";
     }
-    const hdms = degreesToStringHDMS(hemisphere, currentPoint[1], 2)
+    const hdms = degreesToStringHDMS(hemisphere, currentPoint[1], 2);
     let feature: GeoJSON.Feature<GeoJSON.LineString>;
-    if (labelType === 'hdms') {
-      feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": hdms } };
+    if (labelType === "hdms") {
+      feature = {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates },
+        properties: { coord: hdms },
+      };
     } else {
-      feature = { type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { "coord": currentPoint[1].toFixed(3) + "°" } };
+      feature = {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates },
+        properties: { coord: currentPoint[1].toFixed(3) + "°" },
+      };
     }
     parallels.push(feature);
 
     currentPoint = [
       currentPoint[0],
-      destination([0, currentPoint[1]], graticuleHeight, 0, { units }).geometry.coordinates[1]
+      destination([0, currentPoint[1]], graticuleHeight, 0, { units }).geometry
+        .coordinates[1],
     ];
   }
 
   return {
-    "meridians": meridians,
-    "parallels": parallels
+    meridians: meridians,
+    parallels: parallels,
   };
 }

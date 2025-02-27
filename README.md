@@ -11,9 +11,9 @@ npm install maplibre-gl maplibre-graticule
 or
 
 ```html
-<link href="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.css" rel="stylesheet" />
-<script src="https://unpkg.com/maplibre-gl@2.2.0/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/maplibre-graticule@0.0.3/dist/maplibre-graticule.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.1.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@5.1.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/maplibre-graticule@0.0.4/dist/maplibre-graticule.js"></script>
 ```
 
 ## Usage
